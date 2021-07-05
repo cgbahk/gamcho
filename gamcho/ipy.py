@@ -5,15 +5,46 @@
 from pathlib import Path
 import pprint as pp
 import sys
+from functools import cmp_to_key
 
 
 def Dir(arg, path=Path.home() / 'buffer'):
     dir_list = dir(arg)
-    public_api_list = [elem for elem in dir_list if not elem.startswith('_')]
+    public_api_list = []
+    for api_name in dir_list:
+        if not api_name.startswith('_'):
+            public_api_list.append(
+                {
+                    'name': api_name,
+                    'value': getattr(arg, api_name),
+                }
+            )
+
+    def compare_api(lhs, rhs):
+        if callable(lhs['value']) and callable(rhs['value']):
+            return -1 if lhs['name'] < rhs['name'] else +1
+
+        if callable(rhs['value']):
+            assert not callable(lhs['value'])
+            return +1
+
+        if callable(lhs['value']):
+            assert not callable(rhs['value'])
+            return -1
+
+        assert not callable(lhs['value'])
+        assert not callable(rhs['value'])
+        return -1 if lhs['name'] < rhs['name'] else +1
+
+    api_sort_key = cmp_to_key(compare_api)
+    public_api_list.sort(key=api_sort_key)
+
     with open(path, 'w') as dump_file:
         for stream in [sys.stdout, dump_file]:
             print(f"Public API for {type(arg)}:", file=stream)
-            pp.pprint(public_api_list, stream=stream)
+            for api_info in public_api_list:
+                # TODO Use tabulate
+                print("{:>20} | {}".format(api_info['name'], api_info['value']), file=stream)
 
 
 def Help(arg, path=Path.home() / 'buffer'):
