@@ -13,12 +13,10 @@ def Dir(arg, path=Path.home() / 'buffer'):
     public_api_list = []
     for api_name in dir_list:
         if not api_name.startswith('_'):
-            public_api_list.append(
-                {
-                    'name': api_name,
-                    'value': getattr(arg, api_name),
-                }
-            )
+            public_api_list.append({
+                'name': api_name,
+                'value': getattr(arg, api_name),
+            })
 
     def compare_api(lhs, rhs):
         if callable(lhs['value']) and callable(rhs['value']):
@@ -44,7 +42,9 @@ def Dir(arg, path=Path.home() / 'buffer'):
             print(f"Public API for {type(arg)}:", file=stream)
             for api_info in public_api_list:
                 # TODO Use tabulate
-                print("{:>20} | {}".format(api_info['name'], str(api_info['value']).partition('\n')[0]), file=stream)
+                print("{:>20} | {}".format(api_info['name'],
+                                           str(api_info['value']).partition('\n')[0]),
+                      file=stream)
 
 
 def Help(arg, path=Path.home() / 'buffer'):
