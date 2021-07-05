@@ -44,7 +44,7 @@ def Dir(arg, path=Path.home() / 'buffer'):
             print(f"Public API for {type(arg)}:", file=stream)
             for api_info in public_api_list:
                 # TODO Use tabulate
-                print("{:>20} | {}".format(api_info['name'], api_info['value']), file=stream)
+                print("{:>20} | {}".format(api_info['name'], str(api_info['value']).partition('\n')[0]), file=stream)
 
 
 def Help(arg, path=Path.home() / 'buffer'):
