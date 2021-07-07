@@ -15,6 +15,8 @@ def Dir(arg, path=Path.home() / 'buffer'):
         if not api_name.startswith('_'):
             public_api_list.append({
                 'name': api_name,
+                # TODO Some API makes runtime error with this
+                # e.g. torch.classes / torch.Tensor.imag
                 'value': getattr(arg, api_name),
             })
 
