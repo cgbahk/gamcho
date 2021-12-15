@@ -3,7 +3,6 @@
 # TODO test this script
 #from gamcho import ipy; import IPython; IPython.embed(colors='neutral')
 from pathlib import Path
-import pprint as pp
 import sys
 from functools import cmp_to_key
 
