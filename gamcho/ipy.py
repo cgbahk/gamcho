@@ -12,13 +12,15 @@ def Dir(arg, path=Path.home() / 'buffer'):
     dir_list = dir(arg)
     public_api_list = []
     for api_name in dir_list:
-        if not api_name.startswith('_'):
-            public_api_list.append({
-                'name': api_name,
-                # TODO Some API makes runtime error with this
-                # e.g. torch.classes / torch.Tensor.imag
-                'value': getattr(arg, api_name),
-            })
+        if api_name.startswith('_'):
+            continue
+
+        public_api_list.append({
+            'name': api_name,
+            # TODO Some API makes runtime error with this
+            # e.g. torch.classes / torch.Tensor.imag
+            'value': getattr(arg, api_name),
+        })
 
     def compare_api(lhs, rhs):
         if callable(lhs['value']) and callable(rhs['value']):
