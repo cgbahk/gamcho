@@ -15,11 +15,14 @@ def Dir(arg, path=Path.home() / 'buffer'):
         if api_name.startswith('_'):
             continue
 
+        try:
+            value = getattr(arg, api_name)
+        except Exception as e:
+            value = f"Exception thrown: '{e}'"
+
         public_api_list.append({
             'name': api_name,
-            # TODO Some API makes runtime error with this
-            # e.g. torch.classes / torch.Tensor.imag
-            'value': getattr(arg, api_name),
+            'value': value,
         })
 
     def compare_api(lhs, rhs):
