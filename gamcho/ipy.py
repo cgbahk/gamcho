@@ -43,14 +43,22 @@ def Dir(arg, path=Path.home() / 'buffer'):
     api_sort_key = cmp_to_key(compare_api)
     public_api_list.sort(key=api_sort_key)
 
+    max_name_length = max([len(api['name']) for api in public_api_list])
+
     with open(path, 'w') as dump_file:
         for stream in [sys.stdout, dump_file]:
             print(f"Public API for {type(arg)}:", file=stream)
             for api_info in public_api_list:
-                # TODO Use tabulate
-                print("{:>20} | {}".format(api_info['name'],
-                                           str(api_info['value']).partition('\n')[0]),
-                      file=stream)
+                # yapf: disable
+                print(
+                    "{name:>{name_size}} | {value}".format(
+                        name=api_info['name'],
+                        name_size=max_name_length,
+                        value=str(api_info['value']).partition('\n')[0]
+                    ),
+                    file=stream
+                )
+                # yapf: enable
 
 
 def Help(arg, path=Path.home() / 'buffer'):
