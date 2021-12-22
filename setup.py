@@ -8,5 +8,6 @@ setup(
     install_requires=[
         'ipython',
         'jedi<0.18',
+        'protobuf',
     ],
 )
