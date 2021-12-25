@@ -39,7 +39,7 @@ def dump_graph_def_json(graph, *, path=Path.home() / 'buffer.graphdef.json'):
         f.write(MessageToJson(graph_def, indent=2))
 
 
-def dump_full_graph_pb(graph, *, path=Path.home() / 'buffer.full.pb'):
+def dump_pb(graph, *, path=Path.home() / 'buffer.pb'):
     path = Path(path)
     assert path.suffix == '.pb'
 
