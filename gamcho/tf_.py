@@ -48,7 +48,8 @@ def dump_pb(graph, *, path=Path.home() / 'buffer.pb'):
         f.write(graph_def.SerializeToString())
 
 
-def dump_frozen_graph_pb(tf, graph, *, outputs=None, path=Path.home() / 'buffer.frozen.pb'):
+def freeze(tf, graph, *, outputs=None):
+    # TODO Support inputs
     """
     Compatibility:
     - tested on TF 1.15
@@ -58,9 +59,9 @@ def dump_frozen_graph_pb(tf, graph, *, outputs=None, path=Path.home() / 'buffer.
         TODO Take tf context, not passing tf module
     - outputs: List of graph output, guess for None
         Supported types: str, tf.Tensor, tf.Operation
+
+    Returns: tf.Graph, frozen graph, preserve names
     """
-    path = Path(path)
-    assert path.suffix == '.pb'
 
     def get_op_name(arg):
         if isinstance(arg, str):
@@ -93,8 +94,10 @@ def dump_frozen_graph_pb(tf, graph, *, outputs=None, path=Path.home() / 'buffer.
         frozen_graph_def = tf.graph_util.convert_variables_to_constants(
             sess, graph_def, output_names)
 
-        with open(path, mode='wb') as f:
-            f.write(frozen_graph_def.SerializeToString())
+        with tf.Graph().as_default() as ret_graph:
+            tf.graph_util.import_graph_def(frozen_graph_def, name='')
+
+            return ret_graph
 
 
 def dump_tflite(tf, graph, *, inputs, outputs=None, path=Path.home() / 'buffer.tflite'):
