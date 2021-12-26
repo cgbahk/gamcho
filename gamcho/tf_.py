@@ -146,6 +146,7 @@ def freeze(tf, graph, *, outputs=None):
             return ret_graph
 
 
+'''
 def dump_tflite(tf, graph, *, inputs, outputs=None, path=Path.home() / 'buffer.tflite'):
     """
     Compatibility:
@@ -209,3 +210,86 @@ def dump_tflite(tf, graph, *, inputs, outputs=None, path=Path.home() / 'buffer.t
 
         with open(path, "wb") as f:
             f.write(converter.convert())
+'''
+
+
+def dump_tflite(tf, graph, *, inputs, outputs=None, path=Path.home() / 'buffer.tflite'):
+    # TODO Take how to fill unknown shape
+    # TODO Error occurs when insufficient inputs provided, error message is not kind
+    """
+    Compatibility:
+    - tested on TF 1.15
+
+    Args:
+    - tf: User's tensorflow module
+        TODO Take tf context, not passing tf module
+    - inputs/outputs: List of graph inputs/output, guess for None
+        Supported types: str, tf.Tensor, tf.Operation
+    """
+
+    path = Path(path)
+    assert path.suffix == '.tflite'
+
+    assert inputs is not None  # TODO Can we guess?
+
+    find_tensor = TensorResolver(tf)
+
+    if outputs is None:
+        outputs = guess_output_ops(graph)
+
+    orig_input_tensors = [find_tensor.of(graph).by(input_) for input_ in inputs]
+    orig_output_tensors = [find_tensor.of(graph).by(output) for output in outputs]
+
+    frozen_graph = freeze(tf, graph, outputs=orig_output_tensors)
+
+    def resolve_unknown_shape(tensor_shape):
+        resolved_shape_list = [1 if dim is None else dim for dim in tensor_shape.as_list()]
+
+        ret = tf.TensorShape(resolved_shape_list)
+        ret.assert_is_fully_defined()
+
+        return ret
+
+    # Replace input with placeholder
+    with tf.Graph().as_default() as new_graph:
+        input_map = {}
+
+        for orig_input_tensor in orig_input_tensors:
+            new_source = tf.placeholder(orig_input_tensor.dtype, name=orig_input_tensor.op.name)
+
+            # TODO Can I use 'tf.ensure_shape'?
+            new_source.set_shape(resolve_unknown_shape(orig_input_tensor.shape))
+
+            input_map[orig_input_tensor.name] = new_source
+
+        tf.graph_util.import_graph_def(frozen_graph.as_graph_def(), input_map=input_map, name='')
+
+    new_input_tensors = list(input_map.values())
+    new_output_tensors = [
+        find_tensor.of(new_graph).by(output.name) for output in orig_output_tensors
+    ]
+    with tf.Session(graph=new_graph, config=tf.ConfigProto(allow_soft_placement=True)) as sess:
+        # Note variable initialization not required as graph frozen
+
+        def get_converter_cls():
+            if hasattr(tf, 'compat') and hasattr(tf.compat, 'v1'):
+                # Only v1 converter has `from_session`, no v2
+                return tf.compat.v1.lite.TFLiteConverter
+
+            logging.warn('Using unknown version of TFLiteConverter, while designed for v1')
+            return tf.lite.TFLiteConverter
+
+        TFLC = get_converter_cls()
+        # TODO Consider 'from_frozen_graph'? But if is from file...
+        converter = TFLC.from_session(sess, new_input_tensors, new_output_tensors)
+
+        # TODO Verify effect of this feature
+        # Ref: https://www.tensorflow.org/lite/guide/ops_select
+        converter.target_spec.supported_ops = [
+            tf.lite.OpsSet.TFLITE_BUILTINS,  # enable TensorFlow Lite ops (default)
+            tf.lite.OpsSet.SELECT_TF_OPS,  # enable additional TensorFlow ops
+        ]
+
+        tflite_model_content = converter.convert()
+        with open(path, "wb") as f:
+            f.write(tflite_model_content)
