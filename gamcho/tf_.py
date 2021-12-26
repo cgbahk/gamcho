@@ -5,6 +5,7 @@
 # TODO Useful helper
 # - name scopes as directory view
 # - count number of node
+# TODO Test this!
 import logging
 from pathlib import Path
 
