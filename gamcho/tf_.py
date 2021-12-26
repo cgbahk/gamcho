@@ -28,6 +28,52 @@ def guess_output_ops(graph):
         yield op
 
 
+class TensorResolver:
+    # TODO Manage exceptions
+    """
+    Syntactic sugar to find tf.Tensor
+
+    How to use:
+        find_tensor = TensorResolver(tf)
+        ... = find_tensor.of(graph).by(arg)
+
+    Supported types for arg: str, tf.Tensor, tf.Operation
+    """
+
+    def __init__(self, tf):
+        self._tf = tf
+
+    def of(self, graph):
+        assert isinstance(graph, self._tf.Graph)
+
+        def _find_tensor(arg):
+            if isinstance(arg, self._tf.Tensor):
+                assert arg.graph == graph
+                return arg
+
+            if isinstance(arg, str):
+                if ':' in arg:
+                    return graph.get_tensor_by_name(arg)
+
+                arg = graph.get_operation_by_name(arg)
+
+            if isinstance(arg, self._tf.Operation):
+                assert arg.graph == graph
+                # TODO Consider multi-output op
+                assert len(arg.outputs) == 1
+                return arg.outputs[0]
+
+            raise RuntimeError(f'Unsupported type: {type(arg)}')
+
+        class _Query:
+            pass
+
+        query = _Query()
+        query.by = _find_tensor
+
+        return query
+
+
 def dump_graph_def_json(graph, *, path=Path.home() / 'buffer.graphdef.json'):
     path = Path(path)
     assert path.suffix == '.json'
