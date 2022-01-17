@@ -1,9 +1,10 @@
 import sys
 import os
 
-from subprocess import check_output
+import pandas as pd
 import shlex
 from pathlib import Path
+from subprocess import check_output
 
 
 def get_package_files(package_name):
@@ -28,15 +29,27 @@ def main():
     pakfiles = get_package_files(package)
     envpaths = os.environ['PATH'].split(':')
 
-    for pakfile in pakfiles:
-        if not is_executable_file(pakfile):
-            continue
+    def is_in_env_path(path):
+        return str(Path(path).parent) in envpaths
 
-        for envpath in envpaths:
-            if Path(pakfile).parent == Path(envpath):
-                # TODO Table output
-                print(check_output(shlex.split(f'file {pakfile}')).decode('utf-8').strip())
-                break
+    df = pd.DataFrame(pakfiles, columns=['file'])
+    df['is_exe'] = df['file'].apply(is_executable_file)
+    df['in_PATH'] = df['file'].apply(is_in_env_path)
+
+    df_command = pd.DataFrame()
+    df_command['file'] = df.loc[df['is_exe'] & df['in_PATH']]['file']  # TODO reindex
+
+    def get_file_info(path):
+        raw_file_info = check_output(shlex.split(f'file {path}')).decode('utf-8').strip()
+
+        prefix = f'{path}: '
+        assert raw_file_info.startswith(prefix)
+
+        return raw_file_info[len(prefix):]
+
+    df_command['info'] = df_command['file'].apply(get_file_info)
+
+    print(df_command.to_markdown(index=False))
 
 
 if __name__ == '__main__':
