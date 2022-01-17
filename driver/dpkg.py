@@ -1,4 +1,4 @@
-import sys
+import argparse
 import os
 
 import pandas as pd
@@ -22,11 +22,11 @@ def is_executable_file(path):
 
 
 def main():
-    assert len(sys.argv) == 2
+    parser = argparse.ArgumentParser()
+    parser.add_argument('package')
+    args = parser.parse_args()
 
-    package = sys.argv[1]
-
-    pakfiles = get_package_files(package)
+    pakfiles = get_package_files(args.package)
     envpaths = os.environ['PATH'].split(':')
 
     def is_in_env_path(path):
