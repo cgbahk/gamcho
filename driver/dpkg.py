@@ -23,6 +23,7 @@ def is_executable_file(path):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--show-non-path-too', action='store_true')
     parser.add_argument('package')
     args = parser.parse_args()
 
@@ -37,7 +38,13 @@ def main():
     df['in_PATH'] = df['file'].apply(is_in_env_path)
 
     df_command = pd.DataFrame()
-    df_command['file'] = df.loc[df['is_exe'] & df['in_PATH']]['file']  # TODO reindex
+
+    if args.show_non_path_too:
+        choice = df['is_exe']
+    else:
+        choice = df['is_exe'] & df['in_PATH']
+
+    df_command['file'] = df.loc[choice]['file']  # TODO reindex
 
     def get_file_info(path):
         raw_file_info = check_output(shlex.split(f'file {path}')).decode('utf-8').strip()
