@@ -1,3 +1,5 @@
+# TODO Exclude 'driver' from import lookup path
+
 from setuptools import setup, find_packages
 
 setup(
