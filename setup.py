@@ -5,9 +5,11 @@ setup(
     author='Cheongyo Bahk',
     author_email='cg.bahk@gmail.com',
     packages=find_packages(),
+    # Recommended: python >= 3.7
+    # TODO How to express this?
     install_requires=[
         'ipython',
-        'jedi<0.18',
         'protobuf',
+        'pudb',
     ],
 )
