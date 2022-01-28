@@ -1,2 +1,4 @@
 pandas
+tabulate
+tflite
 yapf

@@ -11,7 +11,10 @@ setup(
     # TODO How to express this?
     install_requires=[
         'ipython',
+        'pandas',
         'protobuf',
         'pudb',
+        'tabulate',
+        'tflite',
     ],
 )
