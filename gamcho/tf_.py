@@ -139,7 +139,8 @@ def freeze(tf, graph, *, outputs=None):
         sess.run(tf.initializers.global_variables())
 
         frozen_graph_def = tf.graph_util.convert_variables_to_constants(
-            sess, graph_def, output_names)
+            sess, graph_def, output_names
+        )
 
         with tf.Graph().as_default() as ret_graph:
             tf.graph_util.import_graph_def(frozen_graph_def, name='')
