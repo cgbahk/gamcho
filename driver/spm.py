@@ -1,15 +1,18 @@
-import argparse
 from pathlib import Path
 
+import click
 import sentencepiece as spm
 
 
-def main():
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("spm_model_path")
-    args = parser.parse_args()
+@click.group()
+def cli():
+    pass
 
-    spm_model_path = Path(args.spm_model_path)
+
+@cli.command()
+@click.argument('spm_model_path')
+def inspect(spm_model_path):
+    spm_model_path = Path(spm_model_path)
     assert spm_model_path.is_file()
 
     processor = spm.SentencePieceProcessor(str(spm_model_path))
@@ -28,4 +31,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    cli()
