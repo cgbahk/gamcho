@@ -46,7 +46,7 @@ def get_remote_branches_info(repo_dir):
 
 def main():
     # TODO Extend functionality using subcommand
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('repo_dir')
     args = parser.parse_args()
 

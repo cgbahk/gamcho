@@ -37,7 +37,7 @@ def get_opstat_frame(model: tflite.Model, graph_index: int):
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('tflite_path')
     args = parser.parse_args()
 

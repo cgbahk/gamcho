@@ -22,7 +22,7 @@ def is_executable_file(path):
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--show-non-path-too', action='store_true')
     parser.add_argument('package')
     args = parser.parse_args()
