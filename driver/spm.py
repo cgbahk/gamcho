@@ -3,6 +3,7 @@ from pathlib import Path
 import click
 import yaml
 import sentencepiece as spm
+import linecache
 
 
 def check_conjecture(processor: spm.SentencePieceProcessor):
@@ -69,6 +70,39 @@ def extract_vocab(spm_model_path, vocab_path):
 
     with open(vocab_path, 'w') as vocab_file:
         yaml.safe_dump(vocab_dict, stream=vocab_file, allow_unicode=True, sort_keys=False)
+
+
+@cli.command()
+@click.option("--spm_model_path", required=True)
+@click.option("--corpus_path", required=True, help="Corpus with each sentence split by line")
+def report_longest_line(spm_model_path, corpus_path):
+    spm_model_path = Path(spm_model_path)
+    assert spm_model_path.is_file()
+
+    corpus_path = Path(corpus_path)
+    assert corpus_path.is_file()
+
+    processor = spm.SentencePieceProcessor(str(spm_model_path))
+
+    with open(corpus_path) as corpus_file:
+        token_count_by_line = []
+
+        for line in corpus_file:
+            token_count_by_line.append(len(processor.Encode(line)))
+
+        # argmax
+        max_idx = max(range(len(token_count_by_line)), key=lambda x: token_count_by_line[x])
+
+    max_token_count = token_count_by_line[max_idx]
+    max_sent = linecache.getline(str(corpus_path), max_idx + 1)  # lineno = index + 1
+    max_sent_tokenized = processor.Encode(max_sent, out_type="str")
+
+    print(f"- INDEX: {max_idx}")
+    print(f"- COUNT: {max_token_count}")
+    print(f"- SENTENCE:")
+    print(f"{max_sent}", end="")
+    print(f"- SENTENCE(TOKENIZED):")
+    print(f"{max_sent_tokenized}")
 
 
 if __name__ == "__main__":
