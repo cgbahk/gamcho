@@ -11,13 +11,16 @@ class Serializer:
     fullname: str = None  # {module}.{qualname}
 
     def serialize_with_type_hint(self, obj):
+        serized = self.serialize(obj)
+
+        if isinstance(serized, str):
+            return f"{TYPE_HINT_KEY}: <{self.fullname}> / {serized}"
+
+        assert isinstance(serized, dict)
+        assert TYPE_HINT_KEY not in serized
+
         ret = {TYPE_HINT_KEY: self.fullname}
-
-        raw_obj_dict = self.serialize(obj)
-        assert isinstance(raw_obj_dict, dict)
-        assert TYPE_HINT_KEY not in raw_obj_dict
-
-        ret.update(raw_obj_dict)
+        ret.update(serized)
 
         return ret
 
@@ -54,6 +57,17 @@ class ArgparseNamespace_Serializer(Serializer):
 
     def serialize(self, obj):
         return vars(obj)
+
+
+@register("torch.Tensor")
+class TorchTensor_Serializer(Serializer):
+    threshold = 3  # Empirical magic number
+
+    def serialize(self, obj):
+        if obj.numel() <= self.threshold:
+            return str(obj)
+
+        return f"Shape of {str(obj.shape)}"
 
 
 class ManyEncoder(json.JSONEncoder):
