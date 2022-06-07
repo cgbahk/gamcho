@@ -65,9 +65,9 @@ class TorchTensor_Serializer(Serializer):
 
     def serialize(self, obj):
         if obj.numel() <= self.threshold:
-            return str(obj)
+            return f"Value of {obj.tolist()}"
 
-        return f"Shape of {str(obj.shape)}"
+        return f"Shape of {list(obj.shape)}"
 
 
 class ManyEncoder(json.JSONEncoder):
