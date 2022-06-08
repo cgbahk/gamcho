@@ -32,13 +32,18 @@ def cli():
 def get_all_comments(repo, issue, comments_json):
     comments_json_path = Path(comments_json)
 
-    comments_str = shell_output(f"gh api repos/{repo}/issues/{issue}/comments --paginate")
+    full_comments_str = shell_output(f"gh api repos/{repo}/issues/{issue}/comments --paginate")
+    full_comments = json.loads(full_comments_str)
 
-    comments = json.loads(comments_str)
-    # TODO Leave only interested, maybe 'id', 'html_url', 'body'
+    # Let's summarize
+    summ_comments = []
+    summ_keys = ["id", "url", "html_url", "body"]
+
+    for full_comment in full_comments:
+        summ_comments.append({summ_key: full_comment[summ_key] for summ_key in summ_keys})
 
     with open(comments_json_path, 'w') as comments_json_file:
-        json.dump(comments, comments_json_file, indent=2)
+        json.dump(summ_comments, comments_json_file, indent=2)
 
 
 @cli.command()
