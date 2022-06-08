@@ -54,10 +54,15 @@ def get_all_comments(repo, issue, comments_json):
     help="[IN] New issue comments will be created in this target issue number"
 )
 @click.option("--comments-json", help="[IN] Path to comments info to be migrated")
-def migrate_comments(target_repo, target_issue, comments_json):
+@click.option("--do-it", is_flag=True, help="Need to pass this flag to migrate, or dry run")
+def migrate_comments(target_repo, target_issue, comments_json, do_it):
     """
     TODO Check reference usage for migrated comments
     """
+    if not do_it:
+        # TODO Check existence of '--do-it'
+        print("This is dry run. Need to pass '--do-it' to actually migrate")
+
     comments_json_path = Path(comments_json)
     assert comments_json_path.is_file()
 
@@ -69,6 +74,12 @@ def migrate_comments(target_repo, target_issue, comments_json):
     for comment in comments:
         with open(tmp_body_path, "w") as body_file:
             body_file.write(comment["body"])
+
+        # TODO Link to target issue
+        print(f"{comment['html_url']} -> {target_repo} Issue {target_issue}")
+
+        if not do_it:
+            continue
 
         shell(f"gh issue comment --repo {target_repo} --body-file {tmp_body_path} {target_issue}")
 
