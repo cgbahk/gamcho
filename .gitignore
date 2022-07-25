@@ -1,3 +1,5 @@
-gamcho.egg-info
+/gamcho.egg-info
+/build
+
 __pycache__
 venv
