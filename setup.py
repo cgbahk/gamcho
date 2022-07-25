@@ -1,12 +1,12 @@
 # TODO Exclude 'driver' from import lookup path
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name='gamcho',
     author='Cheongyo Bahk',
     author_email='cg.bahk@gmail.com',
-    packages=find_packages(),
+    packages=['gamcho'],
     # Recommended: python >= 3.7
     # TODO How to express this?
     install_requires=[
