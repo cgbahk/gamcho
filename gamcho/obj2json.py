@@ -70,6 +70,13 @@ class TorchTensor_Serializer(Serializer):
         return f"Shape of {list(obj.shape)}"
 
 
+@register("fairseq.dataclass.constants.Choices")
+class FairseqChoices_Serializer(Serializer):
+
+    def serialize(self, obj):
+        return obj.value
+
+
 class ManyEncoder(json.JSONEncoder):
 
     def default(self, obj):
