@@ -12,5 +12,6 @@ setup(
     install_requires=[
         'ipython',
         'pudb',
+        'hydra-core>=1.0.7,<1.1',  # Mimics fairseq
     ],
 )
