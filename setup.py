@@ -10,8 +10,8 @@ setup(
     # Recommended: python >= 3.7
     # TODO How to express this?
     install_requires=[
+        # Do NOT add every requirement. Most helper will just use already installed version.
         'ipython',
         'pudb',
-        'hydra-core>=1.0.7,<1.1',  # Mimics fairseq
     ],
 )
