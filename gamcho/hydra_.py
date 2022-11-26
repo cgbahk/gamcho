@@ -1,3 +1,12 @@
+"""
+For example, add this to hydra config to exploit this library
+
+```yml
+hydra:
+  run:
+    dir: outputs/${hydra.job.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+```
+"""
 from hydra.core.hydra_config import HydraConfig
 from pathlib import Path
 
