@@ -95,13 +95,13 @@ def report_longest_line(spm_model_path, corpus_path):
 
     max_token_count = token_count_by_line[max_idx]
     max_sent = linecache.getline(str(corpus_path), max_idx + 1)  # lineno = index + 1
-    max_sent_tokenized = processor.Encode(max_sent, out_type="str")
+    max_sent_tokenized = processor.encode(max_sent, out_type=str)
 
     print(f"- INDEX: {max_idx}")
     print(f"- COUNT: {max_token_count}")
-    print(f"- SENTENCE:")
+    print("- SENTENCE:")
     print(f"{max_sent}", end="")
-    print(f"- SENTENCE(TOKENIZED):")
+    print("- SENTENCE(TOKENIZED):")
     print(f"{max_sent_tokenized}")
 
 
