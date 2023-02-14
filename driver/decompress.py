@@ -62,7 +62,7 @@ class Box(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def unbox_to(self, floor_path: Path):
+    def unbox_to(self, floor_dir: Path):
         raise NotImplementedError
 
 
@@ -76,11 +76,11 @@ class Zip(Box, key=".zip"):
 
         return True
 
-    def unbox_to(self, floor_path: Path):
-        assert is_empty_dir(floor_path)
+    def unbox_to(self, floor_dir: Path):
+        assert is_empty_dir(floor_dir)
 
         # TODO Use `zipfile` library
-        subprocess.run(["unzip", str(self._box_path), "-d", str(floor_path)], check=True)
+        subprocess.run(["unzip", str(self._box_path), "-d", str(floor_dir)], check=True)
 
 
 class Gz(Box, key=".gz"):
@@ -98,10 +98,10 @@ class Gz(Box, key=".gz"):
 
         return True
 
-    def unbox_to(self, floor_path: Path):
-        assert is_empty_dir(floor_path)
+    def unbox_to(self, floor_dir: Path):
+        assert is_empty_dir(floor_dir)
 
-        content_path_on_floor = floor_path / self._box_path.with_suffix("").name
+        content_path_on_floor = floor_dir / self._box_path.with_suffix("").name
 
         # TODO Use `gzip` library
         with open(content_path_on_floor, "wb") as content_file:
@@ -124,15 +124,15 @@ def main():
 
     for scenario in config["scenarios"]:
         box_path = Path(scenario["box"])
-        floor_path = Path(scenario["floor"])
+        floor_dir = Path(scenario["floor"])
 
-        logging.info(f"Unboxing '{box_path}' to '{floor_path}'")
+        logging.info(f"Unboxing '{box_path}' to '{floor_dir}'")
 
         assert box_path.is_file()
-        assert is_empty_dir(floor_path)
+        assert is_empty_dir(floor_dir)
 
         box = Box.registry[scenario["suffix"]](box_path)
-        box.unbox_to(floor_path)
+        box.unbox_to(floor_dir)
 
 
 if __name__ == "__main__":
