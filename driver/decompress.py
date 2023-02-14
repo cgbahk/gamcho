@@ -9,6 +9,7 @@ import logging
 import logging.config
 
 import yaml
+import py7zr
 
 logging.config.dictConfig(
     {
@@ -111,6 +112,23 @@ class Gz(Box, key=".gz"):
                 stdout=content_file,
                 check=True,
             )
+
+
+class Sevenzip(Box, key=".7z"):
+
+    def _is_okay(self) -> bool:
+        if self._box_path.suffix != ".7z":
+            return False
+
+        # TODO Double check with `file` output
+
+        return True
+
+    def unbox_to(self, floor_dir: Path):
+        assert is_empty_dir(floor_dir)
+
+        with py7zr.SevenZipFile(self._box_path) as zip_file:
+            zip_file.extractall(floor_dir)
 
 
 def main():
