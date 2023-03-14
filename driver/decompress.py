@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 import subprocess
 import logging
 import logging.config
+from zipfile import ZipFile
 
 import yaml
 import py7zr
@@ -44,14 +45,8 @@ def is_empty_dir(path: Path):
     return not any(path.iterdir())
 
 
-class Box(ABC):
+class Knife(ABC):
     registry = {}
-
-    def __init__(self, box_path: Path):
-        self._box_path = Path(box_path)
-        assert self._box_path.is_file()
-
-        assert self._is_okay()
 
     def __init_subclass__(cls, /, key, **kwargs):
         # TODO Deprecate `key`, imply box format from path
@@ -59,35 +54,41 @@ class Box(ABC):
         cls.registry[key] = cls
 
     @abstractmethod
-    def _is_okay(self) -> bool:
+    def can_unbox(self, box_path: Path) -> bool:
         raise NotImplementedError
 
     @abstractmethod
-    def unbox_to(self, floor_dir: Path):
+    def unbox(self, box_path: Path, *, floor_dir: Path):
         raise NotImplementedError
 
 
-class Zip(Box, key=".zip"):
+class Unzip(Knife, key="unzip"):
 
-    def _is_okay(self) -> bool:
-        if self._box_path.suffix != ".zip":
+    def can_unbox(self, box_path: Path) -> bool:
+        if not box_path.is_file():
+            return False
+
+        if box_path.suffix != ".zip":
             return False
 
         # TODO Double check with `file` output
 
         return True
 
-    def unbox_to(self, floor_dir: Path):
+    def unbox(self, box_path: Path, *, floor_dir: Path):
         assert is_empty_dir(floor_dir)
 
         # TODO Use `zipfile` library
-        subprocess.run(["unzip", str(self._box_path), "-d", str(floor_dir)], check=True)
+        subprocess.run(["unzip", str(box_path), "-d", str(floor_dir)], check=True)
 
 
-class Gz(Box, key=".gz"):
+class Gzip(Knife, key="gzip"):
 
-    def _is_okay(self) -> bool:
-        suffixes = self._box_path.suffixes
+    def can_unbox(self, box_path: Path) -> bool:
+        if not box_path.is_file():
+            return False
+
+        suffixes = box_path.suffixes
 
         if suffixes[-1] != ".gz":
             return False
@@ -99,35 +100,38 @@ class Gz(Box, key=".gz"):
 
         return True
 
-    def unbox_to(self, floor_dir: Path):
+    def unbox(self, box_path: Path, *, floor_dir: Path):
         assert is_empty_dir(floor_dir)
 
-        content_path_on_floor = floor_dir / self._box_path.with_suffix("").name
+        content_path_on_floor = floor_dir / box_path.with_suffix("").name
 
         # TODO Use `gzip` library
         with open(content_path_on_floor, "wb") as content_file:
             subprocess.run(
                 ["gzip", "--decompress", "--stdout",
-                 str(self._box_path)],
+                 str(box_path)],
                 stdout=content_file,
                 check=True,
             )
 
 
-class Sevenzip(Box, key=".7z"):
+class Py7zr(Knife, key="py7zr"):
 
-    def _is_okay(self) -> bool:
-        if self._box_path.suffix != ".7z":
+    def can_unbox(self, box_path: Path) -> bool:
+        if not box_path.is_file():
+            return False
+
+        if box_path.suffix != ".7z":
             return False
 
         # TODO Double check with `file` output
 
         return True
 
-    def unbox_to(self, floor_dir: Path):
+    def unbox(self, box_path: Path, *, floor_dir: Path):
         assert is_empty_dir(floor_dir)
 
-        with py7zr.SevenZipFile(self._box_path) as zip_file:
+        with py7zr.SevenZipFile(box_path) as zip_file:
             zip_file.extractall(floor_dir)
 
 
@@ -154,8 +158,9 @@ def main():
         assert box_path.is_file()
         assert is_empty_dir(floor_dir)
 
-        box = Box.registry[scenario["suffix"]](box_path)
-        box.unbox_to(floor_dir)
+        knife = Knife.registry[scenario["knife"]]()
+        assert knife.can_unbox(box_path)
+        knife.unbox(box_path, floor_dir=floor_dir)
 
 
 if __name__ == "__main__":
