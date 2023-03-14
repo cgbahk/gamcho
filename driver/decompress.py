@@ -142,7 +142,12 @@ def main():
 
     for scenario in config["scenarios"]:
         box_path = Path(scenario["box"])
-        floor_dir = Path(scenario["floor"])
+
+        if "use_auto_floor" in scenario and scenario["use_auto_floor"]:
+            floor_dir = Path(str(box_path) + ".content")
+            floor_dir.mkdir()
+        else:
+            floor_dir = Path(scenario["floor"])
 
         logging.info(f"Unboxing '{box_path}' to '{floor_dir}'")
 
