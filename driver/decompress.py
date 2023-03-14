@@ -62,6 +62,14 @@ class Knife(ABC):
         raise NotImplementedError
 
 
+"""
+`unzip` vs. `zipfile`
+
+With some compressed filenames with Korean in `.zip`, specific unbox implementation required.
+Rule of thumb: `unzip` mostly just work. Trye `zipfile` as alternative.
+"""
+
+
 class Unzip(Knife, key="unzip"):
 
     def can_unbox(self, box_path: Path) -> bool:
@@ -78,8 +86,29 @@ class Unzip(Knife, key="unzip"):
     def unbox(self, box_path: Path, *, floor_dir: Path):
         assert is_empty_dir(floor_dir)
 
-        # TODO Use `zipfile` library
+        # What happens for absolute path or parent path for file path?
         subprocess.run(["unzip", str(box_path), "-d", str(floor_dir)], check=True)
+
+
+class Zipfile(Knife, key="zipfile"):
+
+    def can_unbox(self, box_path: Path) -> bool:
+        if not box_path.is_file():
+            return False
+
+        if box_path.suffix != ".zip":
+            return False
+
+        # TODO Double check with `file` output
+
+        return True
+
+    def unbox(self, box_path: Path, *, floor_dir: Path):
+        assert is_empty_dir(floor_dir)
+
+        with ZipFile(box_path) as zip_file:
+            # What happens for absolute path or parent path for file path?
+            zip_file.extractall(floor_dir)
 
 
 class Gzip(Knife, key="gzip"):
