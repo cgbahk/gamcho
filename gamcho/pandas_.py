@@ -11,6 +11,8 @@ def save_excel(df: pd.DataFrame, path, **kwargs):
 
     Feature:
     - Adjust column width automatically
+
+    But there seems better approach: saving into `.csv` or `.tsv` then open with excel program
     """
     sheet_name = kwargs.get("sheet_name", "Sheet1")  # pandas' default
 
@@ -20,6 +22,7 @@ def save_excel(df: pd.DataFrame, path, **kwargs):
             **kwargs,
         )
 
+        # TODO Need to consider whether index column added
         for column in df:
             column_width = max(df[column].astype(str).map(len).max(), len(column))
             col_idx = df.columns.get_loc(column)
