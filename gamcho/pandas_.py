@@ -2,6 +2,8 @@ import pandas as pd
 
 from openpyxl.utils import get_column_letter
 
+__MAX_WIDTH = 100
+
 
 def save_excel(df: pd.DataFrame, path, **kwargs):
     """
@@ -10,7 +12,6 @@ def save_excel(df: pd.DataFrame, path, **kwargs):
     Feature:
     - Adjust column width automatically
     """
-
     sheet_name = kwargs.get("sheet_name", "Sheet1")  # pandas' default
 
     with pd.ExcelWriter(path) as writer:
@@ -25,4 +26,5 @@ def save_excel(df: pd.DataFrame, path, **kwargs):
             col_letter = get_column_letter(col_idx + 1)
 
             # This may only work with `openpyxl` engine
-            writer.sheets[sheet_name].column_dimensions[col_letter].width = column_width
+            writer.sheets[sheet_name].column_dimensions[col_letter].width = \
+                min(__MAX_WIDTH, column_width)
