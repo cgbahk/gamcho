@@ -19,6 +19,7 @@ def make_dir_grouped_by_datetime(base_dir: Path) -> Path:
 
     latest_link = base_dir / "1atest"  # Hard-coded link name
     latest_link.unlink(missing_ok=True)
-    latest_link.symlink_to(ret)
+    # Use relative link to be more reliable to structure refactoring
+    latest_link.symlink_to(ret.relative_to(latest_link.parent))
 
     return ret
