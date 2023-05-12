@@ -18,7 +18,7 @@ def make_base_config():
                 "formatter": "tlnm",
                 "class": "logging.FileHandler",
                 "mode": "w",
-                # "filename" better be specified
+                "filename": "/dev/null",
             },
         },
         "loggers": {
