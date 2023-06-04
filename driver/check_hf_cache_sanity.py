@@ -20,8 +20,14 @@ def git_repo_clone_with_retry(*args, **kwargs):
         try:
             return git.Repo.clone_from(*args, **kwargs)
         except git.GitCommandError as err:
-            if b"gnutls_handshake" not in err.args[2]:
-                raise err
+            # These error cases can be removed with several retries.
+            # Q. What is the core reason of this behavior..?
+            if b"gnutls_handshake" in err.args[2]:
+                continue
+            if b"SSL routines:ssl3_get_record:wrong version number" in err.args[2]:
+                continue
+
+            raise err
 
     assert False  # All retry failed, must be some other issue
 
