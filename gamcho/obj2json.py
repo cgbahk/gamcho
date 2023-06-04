@@ -29,6 +29,7 @@ class Serializer:
         raise NotImplementedError
 
 
+# TODO Use `__init_subclass__()`
 SERIALIZER_REGISTRY = {}  # { fullname: serializer, ... }
 
 
