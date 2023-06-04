@@ -4,7 +4,7 @@ import hashlib
 import tempfile
 import logging
 import re
-from typing import Dict
+from typing import Optional
 import os
 import argparse
 
@@ -28,40 +28,39 @@ def git_repo_clone_with_retry(*args, **kwargs):
 
 class ChecksumCache:
 
-    def __init__(self):
+    def __init__(self, progress_bar: tqdm):
         self._real_full_path_to_sha256 = {}
+        self._progress_bar = progress_bar
 
-    def get_checksum(self, path: Path) -> Dict:
+    def get_checksum(self, path: Path) -> str:
         assert Path(path).is_file()
 
         real_full_path = os.path.realpath(path)
 
         if real_full_path in self._real_full_path_to_sha256:
             # Cache hit
-            return {
-                "checksum": self._real_full_path_to_sha256[real_full_path],
-                "cost_in_byte": 0,
-            }
+            return self._real_full_path_to_sha256[real_full_path]
 
-        checksum = compute_sha256(real_full_path)
-        self._real_full_path_to_sha256[real_full_path] = checksum
+        ret = compute_sha256(real_full_path, progress_bar=self._progress_bar)
+        self._real_full_path_to_sha256[real_full_path] = ret
 
-        return {
-            "checksum": checksum,
-            "cost_in_byte": Path(real_full_path).stat().st_size,
-        }
+        return ret
 
 
-def compute_sha256(path: Path):
+def compute_sha256(path: Path, *, progress_bar: Optional[tqdm]):
     assert Path(path).is_file()
 
     ret = hashlib.sha256()
 
     with open(path, "rb") as f:
         # TODO Chunk size hard-coded, try optimal value for big file
+        #      But it seems to be limited by disk read speed
         # TODO Update `progress_bar` here
-        for chunk in iter(lambda: f.read(4096), b""):
+        for chunk in iter(lambda: f.read(1024**2), b""):
             ret.update(chunk)
+
+            if progress_bar:
+                progress_bar.update(len(chunk) / 1000**3)  # Hard-coded & tight coupling
 
     return ret.hexdigest()
 
@@ -88,7 +87,7 @@ def main():
         smoothing=0,
     )
 
-    checksum_cache = ChecksumCache()
+    checksum_cache = ChecksumCache(progress_bar)
 
     for repo_info in info.repos:
         logging.debug(f"{repo_info.repo_id=}")
@@ -110,10 +109,7 @@ def main():
 
                 for file in revision.files:
                     actual_path = file.file_path
-                    checksum_result = checksum_cache.get_checksum(actual_path)
-
-                    actual_checksum = checksum_result["checksum"]
-                    progress_bar.update(checksum_result["cost_in_byte"] / 1000**3)
+                    actual_checksum = checksum_cache.get_checksum(actual_path)
 
                     logging.debug(f"{actual_path=}")
                     logging.debug(f"{actual_checksum=}")
@@ -133,7 +129,7 @@ def main():
                     else:
                         # NOTE This is not counted in `progress_bar`, as it determined on runtime.
                         # Guess effect of this is small, most big file mostly covered by git-lfs
-                        expected_checksum = compute_sha256(cloned_path)
+                        expected_checksum = compute_sha256(cloned_path, progress_bar=None)
 
                     if expected_checksum != actual_checksum:
                         logging.error(
