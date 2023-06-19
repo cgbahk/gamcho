@@ -81,6 +81,9 @@ def main():
     args = parser.parse_args()
     assert Path(args.cache_dir).expanduser().is_dir()
 
+    # TODO Support run from no internet connection.
+    # - Dump checksum as file
+    # - Verify checksum from where internet available with checksum file copied
     info = huggingface_hub.scan_cache_dir(args.cache_dir)
     # info.size_on_disk
 
