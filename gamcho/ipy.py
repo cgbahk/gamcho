@@ -7,6 +7,8 @@ import sys
 from functools import cmp_to_key
 
 
+# TODO If path is absolute, use it.
+#      If path is relative, use ${HOME}/path.
 def Dir(arg, path=Path.home() / 'buffer'):
     dir_list = dir(arg)
     public_api_list = []
