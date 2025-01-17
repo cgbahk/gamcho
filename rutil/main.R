@@ -7,3 +7,16 @@ helpme <- function (obj) {
 
   help(obj)
 }
+
+# Inspired by `data()`
+get_all_datasets <- function () {
+  capture.output(
+    print(
+      as.data.frame(data()$results)[,c("Item", "Title", "Package")],
+      right=FALSE,
+      row.names=FALSE,
+      width=10000,
+    ),
+    file=path.expand("~/buffer")
+  )
+}
