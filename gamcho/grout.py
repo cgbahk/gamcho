@@ -14,7 +14,7 @@ def make_dir_grouped_by_datetime(base_dir: Path) -> Path:
     assert base_dir.is_dir()
 
     now = datetime.now()
-    ret = base_dir / now.strftime("%Y-%m-%d") / now.strftime("%H-%M-%S")
+    ret = base_dir / now.strftime("%Y_%m_%d") / now.strftime("%H_%M_%S")
     ret.mkdir(parents=True)
 
     latest_link = base_dir / "1atest"  # Hard-coded link name
