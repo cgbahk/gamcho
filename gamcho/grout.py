@@ -3,7 +3,7 @@ grout - library for grouped output directory
 """
 
 from pathlib import Path
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 
 
 def make_dir_grouped_by_datetime(base_dir: Path) -> Path:
@@ -13,7 +13,7 @@ def make_dir_grouped_by_datetime(base_dir: Path) -> Path:
     base_dir = Path(base_dir)
     assert base_dir.is_dir()
 
-    now = datetime.now(timezone(timedelta(hours=9), "KST"))  # Hard-coded
+    now = datetime.now()
     ret = base_dir / now.strftime("%Y-%m-%d") / now.strftime("%H-%M-%S")
     ret.mkdir(parents=True)
 
