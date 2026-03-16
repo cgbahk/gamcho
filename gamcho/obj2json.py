@@ -1,7 +1,11 @@
+"""
+from gamcho import obj2json; obj2json.dump(...)
+"""
 from pathlib import Path
 import json
 import logging
 
+DUMP_PATH = "~/buffer.json"
 TYPE_HINT_KEY = "__type_hint_by_gamcho"
 
 LOGGER = logging.getLogger(__name__)
@@ -97,9 +101,8 @@ class ManyEncoder(json.JSONEncoder):
         return fallback_ret
 
 
-def dump(obj, *, json_path):
-    json_path = Path(json_path)
-    with open(json_path, "w") as json_file:
+def dump(obj):
+    with open(Path(DUMP_PATH).expanduser(), "w") as json_file:
         json.dump(
             obj,
             json_file,
