@@ -1,7 +1,6 @@
-# HOW TO USE
-#
-# TODO test this script
-#from gamcho import ipy; import IPython; IPython.embed(colors='neutral')
+"""
+from gamcho import ipy; import IPython; IPython.embed(colors='neutral')
+"""
 from pathlib import Path
 import sys
 from functools import cmp_to_key
